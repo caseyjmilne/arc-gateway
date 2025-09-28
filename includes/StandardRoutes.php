@@ -133,9 +133,10 @@ class StandardRoutes
 
             foreach ($endpoints as $endpoint) {
                 $info[$collectionName][] = [
-                    'method' => $endpoint->getMethod(),
-                    'route' => $endpoint->getFullRoute(),
-                    'description' => $this->getRouteDescription($endpoint->getMethod(), $collectionName)
+                    'method'      => $endpoint->getMethod(),
+                    'route'       => $endpoint->getFullRoute(),
+                    'type'        => $endpoint->getType(), // <-- use the route type from the endpoint
+                    'description' => $this->getRouteDescription($endpoint)
                 ];
             }
         }
@@ -143,11 +144,14 @@ class StandardRoutes
         return $info;
     }
 
-    private function getRouteDescription($method, $collectionName)
+    private function getRouteDescription($endpoint)
     {
+        $method = $endpoint->getMethod();
+        $collectionName = $endpoint->getCollectionName();
+
         switch ($method) {
             case 'GET':
-                return strpos($collectionName, '{id}') !== false
+                return $endpoint->getType() === 'get_one'
                     ? "Get a single {$collectionName} item"
                     : "Get all {$collectionName} items";
             case 'POST':
@@ -160,4 +164,5 @@ class StandardRoutes
                 return "Perform {$method} operation on {$collectionName}";
         }
     }
+
 }

@@ -8,6 +8,12 @@ use WP_REST_Response;
 
 class GetOneRoute extends BaseEndpoint
 {
+
+    public function getType()
+    {
+        return 'get_one';
+    }
+
     public function getMethod()
     {
         return 'GET';

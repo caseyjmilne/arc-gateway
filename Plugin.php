@@ -30,9 +30,13 @@ require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/GetOneRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/GetManyRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/UpdateRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/DeleteRoute.php';
+require_once ARC_GATEWAY_PATH . 'includes/AdminPages.php';
 
 // Include global helper functions
 require_once ARC_GATEWAY_PATH . 'includes/helpers.php';
+
+// Initiate classes that require initialization. 
+new AdminPage();
 
 class Plugin
 {

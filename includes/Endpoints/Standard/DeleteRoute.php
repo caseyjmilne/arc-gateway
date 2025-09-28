@@ -8,6 +8,12 @@ use WP_REST_Response;
 
 class DeleteRoute extends BaseEndpoint
 {
+
+    public function getType()
+    {
+        return 'delete';
+    }
+
     public function getMethod()
     {
         return 'DELETE';

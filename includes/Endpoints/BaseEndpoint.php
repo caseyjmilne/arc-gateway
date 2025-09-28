@@ -23,6 +23,8 @@ abstract class BaseEndpoint
     abstract public function getRoute();
     abstract public function handle(WP_REST_Request $request);
 
+    abstract public function getType();
+
     public function getNamespace()
     {
         return $this->namespace;
@@ -136,4 +138,10 @@ abstract class BaseEndpoint
 
         return $this->sendSuccessResponse($mockData);
     }
+
+    public function getCollectionName()
+    {
+        return $this->collectionName;
+    }
+
 }

@@ -8,6 +8,13 @@ use WP_REST_Response;
 
 class CreateRoute extends BaseEndpoint
 {
+
+
+    public function getType()
+    {
+        return 'create';
+    }
+    
     public function getMethod()
     {
         return 'POST';

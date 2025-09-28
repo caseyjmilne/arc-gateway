@@ -8,6 +8,12 @@ use WP_REST_Response;
 
 class GetManyRoute extends BaseEndpoint
 {
+
+    public function getType()
+    {
+        return 'get_many';
+    }
+
     public function getMethod()
     {
         return 'GET';

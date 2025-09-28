@@ -8,6 +8,12 @@ use WP_REST_Response;
 
 class UpdateRoute extends BaseEndpoint
 {
+
+    public function getType()
+    {
+        return 'update';
+    }
+
     public function getMethod()
     {
         return 'PUT';
