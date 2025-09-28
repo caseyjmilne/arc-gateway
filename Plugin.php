@@ -20,16 +20,19 @@ define('ARC_GATEWAY_URL', plugin_dir_url(__FILE__));
 define('ARC_GATEWAY_FILE', __FILE__);
 
 // Load classes immediately before instantiation
-require_once ARC_GATEWAY_PATH . 'src/CollectionRegistry.php';
-require_once ARC_GATEWAY_PATH . 'src/Collection.php';
-require_once ARC_GATEWAY_PATH . 'src/Gateway.php';
-require_once ARC_GATEWAY_PATH . 'src/StandardRoutes.php';
-require_once ARC_GATEWAY_PATH . 'src/Endpoints/BaseEndpoint.php';
-require_once ARC_GATEWAY_PATH . 'src/Endpoints/Standard/CreateRoute.php';
-require_once ARC_GATEWAY_PATH . 'src/Endpoints/Standard/GetOneRoute.php';
-require_once ARC_GATEWAY_PATH . 'src/Endpoints/Standard/GetManyRoute.php';
-require_once ARC_GATEWAY_PATH . 'src/Endpoints/Standard/UpdateRoute.php';
-require_once ARC_GATEWAY_PATH . 'src/Endpoints/Standard/DeleteRoute.php';
+require_once ARC_GATEWAY_PATH . 'includes/CollectionRegistry.php';
+require_once ARC_GATEWAY_PATH . 'includes/Collection.php';
+require_once ARC_GATEWAY_PATH . 'includes/Gateway.php';
+require_once ARC_GATEWAY_PATH . 'includes/StandardRoutes.php';
+require_once ARC_GATEWAY_PATH . 'includes/Endpoints/BaseEndpoint.php';
+require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/CreateRoute.php';
+require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/GetOneRoute.php';
+require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/GetManyRoute.php';
+require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/UpdateRoute.php';
+require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/DeleteRoute.php';
+
+// Include global helper functions
+require_once ARC_GATEWAY_PATH . 'includes/helpers.php';
 
 class Plugin
 {
@@ -63,7 +66,6 @@ class Plugin
 
     public function onInit()
     {
-        // Any logic that needs to run on WordPress 'init' hook
         do_action('arc_gateway_loaded');
     }
 
@@ -79,42 +81,14 @@ class Plugin
 
     public function activate()
     {
-        // Activation logic here
         flush_rewrite_rules();
     }
 
     public function deactivate()
     {
-        // Deactivation logic here
         flush_rewrite_rules();
     }
 }
 
 // Initialize plugin
 Plugin::getInstance();
-
-// Helper functions for developers
-function arc_register_collection($modelClass, $config = [], $alias = null)
-{
-    return Plugin::getInstance()->getRegistry()->register($modelClass, $config, $alias);
-}
-
-function arc_get_collection($identifier)
-{
-    return Gateway::get($identifier);
-}
-
-function arc_collection($identifier)
-{
-    return Gateway::collection($identifier);
-}
-
-function arc_query($identifier)
-{
-    return Gateway::query($identifier);
-}
-
-function arc_get_routes()
-{
-    return Plugin::getInstance()->getStandardRoutes()->getRouteInfo();
-}
