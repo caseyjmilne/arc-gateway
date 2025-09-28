@@ -29,7 +29,7 @@ class AdminPage
         echo '<div class="wrap">';
         echo '<h1>ARC Gateway Admin</h1>';
 
-        // Collections
+        // --- Collections ---
         $registry = Plugin::getInstance()->getRegistry();
         $collections = $registry->getAll(); // ✅ correct method
         echo '<h2>Registered Collections</h2>';
@@ -43,7 +43,7 @@ class AdminPage
             echo '<p>No collections registered.</p>';
         }
 
-        // Routes
+        // --- Routes ---
         $routes = Plugin::getInstance()->getStandardRoutes()->getRouteInfo();
         echo '<h2>Registered Routes</h2>';
         if (!empty($routes)) {
@@ -62,6 +62,34 @@ class AdminPage
             }
         } else {
             echo '<p>No routes registered.</p>';
+        }
+
+        // --- Query Test ---
+        echo '<h2>Query Test</h2>';
+        if (!empty($collections)) {
+            try {
+                // Pick the first collection for demo
+                $firstCollection = reset($collections);
+
+                // Build a simple query: author_id = current user, status = published
+                $query = (new Query($firstCollection))
+                    ->addParam('author_id', get_current_user_id())
+                    ->addParam('status', 'published')
+                    ->setOrder('id', 'asc')
+                    ->setLimit(5);
+
+                echo '<pre>';
+                echo "SQL: " . $query->debug()['sql'] . "\n";
+                echo "Bindings: ";
+                print_r($query->debug()['bindings']);
+                echo "\nResults (first 5): ";
+                print_r($query->get()->toArray());
+                echo '</pre>';
+            } catch (\Exception $e) {
+                echo '<p style="color:red;">Query test failed: ' . esc_html($e->getMessage()) . '</p>';
+            }
+        } else {
+            echo '<p>No collections available for query test.</p>';
         }
 
         echo '</div>';
