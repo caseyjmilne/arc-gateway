@@ -31,7 +31,6 @@ require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/GetManyRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/UpdateRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/DeleteRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/AdminPages.php';
-require_once ARC_GATEWAY_PATH . 'includes/Query.php';
 
 // Include global helper functions
 require_once ARC_GATEWAY_PATH . 'includes/helpers.php';

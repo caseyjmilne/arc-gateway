@@ -37,36 +37,26 @@ class GetManyRoute extends BaseEndpoint
                 $order = 'asc';
             }
 
-            // ✅ Instantiate Query with the collection
-            $query = new \ARC\Gateway\Query($this->collection);
-
-            // ✅ Apply filters only if provided and allowed
-            $filters = $request->get_params();
-            foreach ($filters as $key => $value) {
-                if (!in_array($key, ['page', 'per_page', 'order_by', 'order', 'search']) && $value !== null) {
-                    $query->addParam($key, $value);
-                }
-            }
-
-            // ✅ Apply search if collection supports it
+            // Handle search separately since it returns Collection not Builder
             if ($search && method_exists($this->collection, 'search')) {
                 $results = $this->collection->search($search);
-                $total = count($results);
-
+                
                 // Convert to arrays
-                $items = array_map(function ($model) {
-                    return is_object($model) && method_exists($model, 'toArray')
+                $items = [];
+                foreach ($results as $model) {
+                    $items[] = is_object($model) && method_exists($model, 'toArray')
                         ? $model->toArray()
                         : (array) $model;
-                }, $results);
-
-                // ✅ Manual pagination when using search
+                }
+                
+                $total = count($items);
+                
+                // Manual pagination on array
                 $offset = ($page - 1) * $per_page;
-                $paginatedItems = array_slice($items, $offset, $per_page);
+                $items = array_slice($items, $offset, $per_page);
 
                 $response = [
-                    'returned_count' => count($paginatedItems),
-                    'items' => $paginatedItems,
+                    'items' => $items,
                     'pagination' => [
                         'page' => $page,
                         'per_page' => $per_page,
@@ -78,40 +68,50 @@ class GetManyRoute extends BaseEndpoint
                 return $this->sendSuccessResponse($response);
             }
 
-            // ✅ Order if valid
-            if ($order_by) {
-                $query->setOrder($order_by, $order);
+            // Start with base query builder
+            $query = $this->collection->query();
+
+            // Apply filters from request params
+            $filters = $request->get_params();
+            foreach ($filters as $key => $value) {
+                if (!in_array($key, ['page', 'per_page', 'order_by', 'order', 'search']) && $value !== null) {
+                    $allowedFilters = $this->collection->getConfig('filters') ?: [];
+                    if (in_array($key, $allowedFilters)) {
+                        $query->where($key, $value);
+                    }
+                }
             }
 
-            // ✅ Pagination
+            // Apply ordering
+            if ($order_by) {
+                $sortable = $this->collection->getConfig('sortable') ?: [];
+                if (in_array($order_by, $sortable)) {
+                    $query->orderBy($order_by, $order);
+                }
+            }
+
+            // Get total count before pagination
+            $total = $query->count();
+
+            // Apply pagination
             $offset = ($page - 1) * $per_page;
-            $query
-                ->setLimit($per_page)
-                ->setOffset($offset);
+            $models = $query->offset($offset)->limit($per_page)->get();
 
-            // ✅ Get results (Eloquent builder)
-            $models = $query->get();
+            // Convert to arrays
             $items = [];
-
             foreach ($models as $model) {
                 $items[] = is_object($model) && method_exists($model, 'toArray')
                     ? $model->toArray()
                     : (array) $model;
             }
 
-            // ✅ Count total without pagination
-            $total = $this->collection->query()->count();
-
             $response = [
-                'returned_count' => count($items),
-                'data' => [
-                    'items' => $items,
-                    'pagination' => [
-                        'page' => $page,
-                        'per_page' => $per_page,
-                        'record_count' => $total,
-                        'total_pages' => ceil($total / $per_page)
-                    ]
+                'items' => $items,
+                'pagination' => [
+                    'page' => $page,
+                    'per_page' => $per_page,
+                    'record_count' => $total,
+                    'total_pages' => ceil($total / $per_page)
                 ]
             ];
 
