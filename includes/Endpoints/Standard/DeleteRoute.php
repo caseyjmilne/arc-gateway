@@ -36,42 +36,43 @@ class DeleteRoute extends BaseEndpoint
             );
         }
 
-        // For now, return mock response until auth plugin is implemented
-        return $this->sendMockResponse('delete', ['id' => $id]);
+        try {
+            // Find the model
+            $model = $this->collection->getModel()::find($id);
 
-        // TODO: Uncomment when ready for real implementation
-        // try {
-        //     $model = $this->collection->find($id);
-        //
-        //     if (!$model) {
-        //         return $this->sendErrorResponse(
-        //             ucfirst($this->collectionName) . ' not found',
-        //             'not_found',
-        //             404
-        //         );
-        //     }
-        //
-        //     $deleted = $this->collection->delete($id);
-        //
-        //     if (!$deleted) {
-        //         return $this->sendErrorResponse(
-        //             'Failed to delete ' . $this->collectionName,
-        //             'delete_failed',
-        //             500
-        //         );
-        //     }
-        //
-        //     return $this->sendSuccessResponse([
-        //         'deleted' => true,
-        //         'id' => (int) $id
-        //     ]);
-        // } catch (\Exception $e) {
-        //     return $this->sendErrorResponse(
-        //         'Failed to delete ' . $this->collectionName . ': ' . $e->getMessage(),
-        //         'delete_failed',
-        //         500
-        //     );
-        // }
+            if (!$model) {
+                return $this->sendErrorResponse(
+                    ucfirst($this->collectionName) . ' not found',
+                    'not_found',
+                    404
+                );
+            }
+
+            // Delete the model
+            $deleted = $model->delete();
+
+            if (!$deleted) {
+                return $this->sendErrorResponse(
+                    'Failed to delete ' . $this->collectionName,
+                    'delete_failed',
+                    500
+                );
+            }
+
+            return $this->sendSuccessResponse([
+                'deleted' => true,
+                'id' => (int) $id
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("ARC Gateway DeleteRoute Error: " . $e->getMessage());
+            
+            return $this->sendErrorResponse(
+                'Failed to delete ' . $this->collectionName . ': ' . $e->getMessage(),
+                'delete_failed',
+                500
+            );
+        }
     }
 
     public function getArgs()
