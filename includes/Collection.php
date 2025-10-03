@@ -33,7 +33,18 @@ abstract class Collection
             'delete' => true,        // DELETE /tickets/{id}
         ],
         'middleware' => [],
-        'permissions' => [],         // WP capabilities required
+        'permissions' => [
+            // Multi-type auth system
+            // Use '*' for all routes or specify per route: 'get_many', 'get_one', 'create', 'update', 'delete'
+            // Set to false for public access
+            // Example:
+            // '*' => [
+            //     'type' => 'cookie_authentication',
+            //     'settings' => [
+            //         'capability' => 'edit_posts',
+            //     ]
+            // ],
+        ],
     ];
 
     /**
