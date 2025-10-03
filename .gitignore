@@ -1,0 +1,60 @@
+# WordPress
+*.log
+.htaccess
+sitemap.xml
+sitemap.xml.gz
+
+# IDE & Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.phpunit.result.cache
+.php_cs.cache
+.php-cs-fixer.cache
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build & Distribution
+/dist/
+/build/
+*.zip
+*.tar.gz
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Composer
+composer.lock
+
+# NPM/Yarn
+package-lock.json
+yarn.lock
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Testing
+/tests/coverage/
+/.phpunit.cache/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
