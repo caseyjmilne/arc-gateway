@@ -38,7 +38,8 @@ class DeleteRoute extends BaseEndpoint
 
         try {
             // Find the model
-            $model = $this->collection->getModel()::find($id);
+            $modelClass = $this->collection->getModelClass();
+            $model = $modelClass::find($id);
 
             if (!$model) {
                 return $this->sendErrorResponse(
@@ -65,8 +66,6 @@ class DeleteRoute extends BaseEndpoint
             ]);
 
         } catch (\Exception $e) {
-            error_log("ARC Gateway DeleteRoute Error: " . $e->getMessage());
-            
             return $this->sendErrorResponse(
                 'Failed to delete ' . $this->collectionName . ': ' . $e->getMessage(),
                 'delete_failed',

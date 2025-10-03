@@ -7,43 +7,89 @@ class CollectionRegistry
     protected $collections = [];
     protected $aliases = [];
 
-    public function register($modelClass, $config = [], $alias = null)
+    /**
+     * Register a collection instance
+     * 
+     * @param Collection $collection Collection instance to register
+     * @param string|null $alias Optional alias for the collection
+     * @return Collection
+     */
+    public function register($collection, $alias = null)
     {
-        if (!class_exists($modelClass)) {
-            throw new \InvalidArgumentException("Model class {$modelClass} does not exist");
+        if (!$collection instanceof Collection) {
+            throw new \InvalidArgumentException("Must pass a Collection instance");
         }
 
-        $collection = new Collection($modelClass, $config);
+        $modelClass = $collection->getModelClass();
+        
+        // Store the collection instance
         $this->collections[$modelClass] = $collection;
 
+        // Register alias if provided, otherwise auto-generate from model name
         if ($alias) {
             if (isset($this->aliases[$alias])) {
-                throw new \InvalidArgumentException("Alias '{$alias}' is already registered for {$this->aliases[$alias]}");
+                throw new \InvalidArgumentException(
+                    sprintf("Alias '%s' is already registered for %s", esc_html($alias), esc_html($this->aliases[$alias]))
+                );
             }
             $this->aliases[$alias] = $modelClass;
+        } else {
+            // Auto-generate alias from model class name
+            $autoAlias = $this->generateAlias($modelClass);
+            $this->aliases[$autoAlias] = $modelClass;
         }
 
-        // FIXED: Pass alias as name, modelClass as model, and config array (not collection object)
-        do_action('arc_gateway_collection_registered', $alias, $modelClass, $config);
+        // Fire action hook
+        do_action('arc_gateway_collection_registered', $alias, $modelClass, $collection->getConfig());
 
         return $collection;
     }
 
+    /**
+     * Generate alias from model class name
+     * 
+     * @param string $modelClass
+     * @return string
+     */
+    protected function generateAlias($modelClass)
+    {
+        $className = class_basename($modelClass);
+        // Remove "Model" suffix if present
+        $alias = str_replace('Model', '', $className);
+        return $alias;
+    }
+
+    /**
+     * Get a registered collection
+     * 
+     * @param string $identifier Model class name or alias
+     * @return Collection
+     */
     public function get($identifier)
     {
+        // Check if it's an alias first
         if (isset($this->aliases[$identifier])) {
             $identifier = $this->aliases[$identifier];
         }
 
         if (!isset($this->collections[$identifier])) {
-            throw new \InvalidArgumentException("Collection for '{$identifier}' is not registered");
+            throw new \InvalidArgumentException(
+                sprintf("Collection for '%s' is not registered", esc_html($identifier))
+            );
         }
 
         return $this->collections[$identifier];
     }
 
+    /**
+     * Check if a collection is registered
+     * 
+     * @param string $identifier Model class name or alias
+     * @return bool
+     */
     public function has($identifier)
     {
+        // Check if it's an alias first
         if (isset($this->aliases[$identifier])) {
             $identifier = $this->aliases[$identifier];
         }
@@ -51,6 +97,12 @@ class CollectionRegistry
         return isset($this->collections[$identifier]);
     }
 
+    /**
+     * Unregister a collection
+     * 
+     * @param string $identifier Model class name or alias
+     * @return bool
+     */
     public function unregister($identifier)
     {
         if (isset($this->aliases[$identifier])) {
@@ -62,6 +114,7 @@ class CollectionRegistry
         if (isset($this->collections[$identifier])) {
             unset($this->collections[$identifier]);
 
+            // Remove all aliases pointing to this model
             foreach ($this->aliases as $alias => $modelClass) {
                 if ($modelClass === $identifier) {
                     unset($this->aliases[$alias]);
@@ -75,31 +128,60 @@ class CollectionRegistry
         return false;
     }
 
+    /**
+     * Get all registered collections
+     * 
+     * @return array
+     */
     public function getAll()
     {
         return $this->collections;
     }
 
+    /**
+     * Get all aliases
+     * 
+     * @return array
+     */
     public function getAliases()
     {
         return $this->aliases;
     }
 
+    /**
+     * Get all registered model classes
+     * 
+     * @return array
+     */
     public function getRegistered()
     {
         return array_keys($this->collections);
     }
 
+    /**
+     * Get alias for a model class
+     * 
+     * @param string $modelClass
+     * @return string|null
+     */
     public function getAlias($modelClass)
     {
         return array_search($modelClass, $this->aliases) ?: null;
     }
 
+    /**
+     * Count registered collections
+     * 
+     * @return int
+     */
     public function count()
     {
         return count($this->collections);
     }
 
+    /**
+     * Clear all registered collections
+     */
     public function clear()
     {
         $this->collections = [];
@@ -107,34 +189,11 @@ class CollectionRegistry
         do_action('arc_gateway_registry_cleared');
     }
 
-    public function batch($registrations)
-    {
-        foreach ($registrations as $registration) {
-            $modelClass = $registration['model'] ?? null;
-            $config = $registration['config'] ?? [];
-            $alias = $registration['alias'] ?? null;
-
-            if ($modelClass) {
-                $this->register($modelClass, $config, $alias);
-            }
-        }
-    }
-
-    public function registerFromConfig($configFile)
-    {
-        if (!file_exists($configFile)) {
-            throw new \InvalidArgumentException("Config file {$configFile} does not exist");
-        }
-
-        $config = include $configFile;
-
-        if (!is_array($config)) {
-            throw new \InvalidArgumentException("Config file must return an array");
-        }
-
-        $this->batch($config);
-    }
-
+    /**
+     * Export collection configurations
+     * 
+     * @return array
+     */
     public function export()
     {
         $export = [];
@@ -143,11 +202,41 @@ class CollectionRegistry
             $alias = $this->getAlias($modelClass);
             $export[] = [
                 'model' => $modelClass,
+                'collection_class' => get_class($collection),
                 'config' => $collection->getConfig(),
-                'alias' => $alias
+                'routes' => $collection->getRoutes(),
+                'alias' => $alias,
+                'analysis' => $collection->getAnalysis(),
             ];
         }
 
         return $export;
+    }
+
+    /**
+     * Get registry statistics
+     * 
+     * @return array
+     */
+    public function getStats()
+    {
+        $stats = [
+            'total_collections' => count($this->collections),
+            'total_aliases' => count($this->aliases),
+            'collections' => [],
+        ];
+
+        foreach ($this->collections as $modelClass => $collection) {
+            $stats['collections'][] = [
+                'model' => $modelClass,
+                'collection' => get_class($collection),
+                'alias' => $this->getAlias($modelClass),
+                'route_prefix' => $collection->getRoutePrefix(),
+                'column_count' => $collection->getColumnCount(),
+                'enabled_routes' => array_keys(array_filter($collection->getRoutes()['methods'])),
+            ];
+        }
+
+        return $stats;
     }
 }

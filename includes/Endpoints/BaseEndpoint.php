@@ -46,14 +46,101 @@ abstract class BaseEndpoint
 
     public function checkPermissions($request)
     {
-        // For testing purposes, completely bypass authentication
-        // This should resolve the rest_cookie_invalid_nonce error
+        // Get route-specific permissions from collection config
+        $routeConfig = $this->collection->getRoutes();
+        $permissions = $routeConfig['permissions'] ?? [];
+        $routeType = $this->getType();
+
+        // Determine which permission config to use
+        $permissionConfig = null;
+
+        // Check for route-specific permission
+        if (isset($permissions[$routeType])) {
+            $permissionConfig = $permissions[$routeType];
+        }
+        // Fall back to wildcard
+        elseif (isset($permissions['*'])) {
+            $permissionConfig = $permissions['*'];
+        }
+
+        // No permission config = require login by default
+        if (!$permissionConfig) {
+            if (!is_user_logged_in()) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    'You must be logged in to access this resource.',
+                    ['status' => rest_authorization_required_code()]
+                );
+            }
+            return true;
+        }
+
+        // Public access (permission set to false)
+        if ($permissionConfig === false) {
+            return true;
+        }
+
+        // Get auth type and settings
+        $authType = $permissionConfig['type'] ?? 'cookie_authentication';
+        $settings = $permissionConfig['settings'] ?? [];
+
+        // Route to appropriate auth handler
+        switch ($authType) {
+            case 'cookie_authentication':
+                return $this->checkCookieAuthentication($settings);
+
+            case 'jwt':
+                return $this->checkJWTAuthentication($settings);
+
+            default:
+                return new WP_Error(
+                    'invalid_auth_type',
+                    sprintf('Unknown authentication type: %s', $authType),
+                    ['status' => 500]
+                );
+        }
+    }
+
+    protected function checkCookieAuthentication($settings)
+    {
+        $capability = $settings['capability'] ?? null;
+
+        // If no capability specified, just require login
+        if (!$capability) {
+            if (!is_user_logged_in()) {
+                return new WP_Error(
+                    'rest_forbidden',
+                    'You must be logged in to access this resource.',
+                    ['status' => rest_authorization_required_code()]
+                );
+            }
+            return true;
+        }
+
+        // Check if user has required capability
+        if (!current_user_can($capability)) {
+            $message = is_user_logged_in()
+                ? sprintf('You need the "%s" capability to perform this action.', $capability)
+                : 'You must be logged in to access this resource.';
+
+            return new WP_Error(
+                'rest_forbidden',
+                $message,
+                ['status' => rest_authorization_required_code()]
+            );
+        }
 
         return true;
+    }
 
-        // TODO: Implement proper authentication later
-        // The rest_cookie_invalid_nonce error occurs when WordPress tries to validate
-        // the session cookie along with the nonce, but we want to bypass that for testing
+    protected function checkJWTAuthentication($settings)
+    {
+        // Placeholder for future JWT implementation
+        return new WP_Error(
+            'not_implemented',
+            'JWT authentication is not yet implemented.',
+            ['status' => 501]
+        );
     }
 
     protected function sendSuccessResponse($data, $status = 200)
@@ -117,7 +204,7 @@ abstract class BaseEndpoint
                 break;
             case 'create':
                 $mockData['result'] = array_merge([
-                    'id' => rand(100, 999),
+                    'id' => wp_rand(100, 999),
                     'created_at' => current_time('mysql'),
                     'updated_at' => current_time('mysql')
                 ], $data ?: []);

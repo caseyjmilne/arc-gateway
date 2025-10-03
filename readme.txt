@@ -1,21 +1,51 @@
-# ARC Gateway Plugin
+=== ARC Gateway ===
+Contributors: arcwp
+Tags: api, eloquent, laravel, rest-api, collections
+Requires at least: 5.0
+Tested up to: 6.8
+Requires PHP: 7.4
+Stable tag: 1.0.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A WordPress plugin that provides a registry system for Laravel Eloquent model collections, enabling developers to register and manage collections with extended functionality through an intuitive API.
+A WordPress plugin that provides a registry system for Laravel Eloquent model collections, enabling auto-generation of REST API routes.
 
-## Features
+== Description ==
 
-- Register Eloquent model collections with custom configurations
-- Extended query capabilities (search, filter, sort)
-- Relationship loading support
-- Caching configuration
-- Alias support for easy collection access
-- Developer-friendly fluent API
+ARC Gateway provides a registry system for Laravel Eloquent model collections, enabling developers to register and manage collections with extended functionality through an intuitive API.
 
-## Usage
+= Features =
 
-### Registering a Collection
+* Register Eloquent model collections with custom configurations
+* Extended query capabilities (search, filter, sort)
+* Relationship loading support
+* Caching configuration
+* Alias support for easy collection access
+* Developer-friendly fluent API
 
-```php
+= Part of the ARC Framework =
+
+ARC Gateway works seamlessly with:
+
+* **ARC Forge** - Model definitions
+* **ARC Blueprint** - Field management
+* **ARC Sentinel** - Authentication & authorization
+
+Together, they provide a complete rapid development framework for WordPress.
+
+== Installation ==
+
+1. Install via Composer or download the plugin
+2. Activate the plugin in WordPress
+3. Register your collections in your theme or plugin
+
+== Usage ==
+
+= Registering a Collection =
+
+Basic registration:
+
+`
 use ARC\Gateway\Collection;
 
 // Basic registration
@@ -30,11 +60,11 @@ Collection::register('App\Models\User', [
     'filters' => ['status', 'role'],
     'relations' => ['profile', 'posts']
 ], 'users');
-```
+`
 
-### Using Collections
+= Using Collections =
 
-```php
+`
 use ARC\Gateway\Collection;
 
 // Get collection instance
@@ -56,11 +86,11 @@ $sorted = $userCollection->sort('created_at', 'desc');
 
 // With relationships
 $usersWithPosts = $userCollection->withRelations(['posts'])->all();
-```
+`
 
-### Helper Functions
+= Helper Functions =
 
-```php
+`
 // Register collection
 arc_register_collection('App\Models\Product', [
     'searchable' => ['name', 'description'],
@@ -73,80 +103,45 @@ $product = arc_get_collection('products')->find(1);
 
 // Direct query
 $results = arc_query('products')->where('status', 'active')->get();
-```
+`
 
-### REST API Integration (Coming Soon)
+= REST API Integration (Coming Soon) =
 
 Collections automatically expose REST endpoints:
 
-```
+`
 GET    /wp-json/arc/v1/products
 GET    /wp-json/arc/v1/products/{id}
 POST   /wp-json/arc/v1/products
 PUT    /wp-json/arc/v1/products/{id}
 DELETE /wp-json/arc/v1/products/{id}
-```
+`
 
-## Configuration Options
+= Configuration Options =
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `cache_enabled` | bool | false | Enable/disable caching |
-| `cache_duration` | int | 3600 | Cache duration in seconds |
-| `soft_deletes` | bool | false | Enable soft deletes |
-| `timestamps` | bool | true | Enable timestamps |
-| `relations` | array | [] | Default relationships to load |
-| `scopes` | array | [] | Default model scopes to apply |
-| `filters` | array | [] | Allowed filter fields |
-| `sortable` | array | [] | Allowed sort fields |
-| `searchable` | array | [] | Searchable fields |
+* `cache_enabled` (bool, default: false) - Enable/disable caching
+* `cache_duration` (int, default: 3600) - Cache duration in seconds
+* `soft_deletes` (bool, default: false) - Enable soft deletes
+* `timestamps` (bool, default: true) - Enable timestamps
+* `relations` (array, default: []) - Default relationships to load
+* `scopes` (array, default: []) - Default model scopes to apply
+* `filters` (array, default: []) - Allowed filter fields
+* `sortable` (array, default: []) - Allowed sort fields
+* `searchable` (array, default: []) - Searchable fields
 
-## Example: Complete Setup
+== Frequently Asked Questions ==
 
-```php
-use ARC\Gateway\Collection;
+= What are the requirements? =
 
-// Register User collection
-Collection::register('App\Models\User', [
-    'cache_enabled' => true,
-    'cache_duration' => 1800,
-    'searchable' => ['name', 'email', 'username'],
-    'sortable' => ['name', 'email', 'created_at', 'updated_at'],
-    'filters' => ['status', 'role', 'verified'],
-    'relations' => ['profile', 'posts', 'comments'],
-    'scopes' => ['active']
-], 'users');
+* WordPress 5.0+
+* Laravel Eloquent (via existing plugin integration)
+* PHP 7.4+
 
-// Use the collection
-$users = arc_collection('users')
-    ->filter(['status' => 'active'])
-    ->sort('created_at', 'desc')
-    ->withRelations(['profile'])
-    ->get();
+= How do I register a collection? =
 
-// Search users
-$results = arc_collection('users')
-    ->search('john', ['name', 'email'])
-    ->get();
-```
+Use the `Collection::register()` method or the `arc_register_collection()` helper function. See the Usage section for examples.
 
-## Requirements
+== Changelog ==
 
-- WordPress 5.0+
-- Laravel Eloquent (via existing plugin integration)
-- PHP 7.4+
-
-## Installation
-
-1. Install via Composer or download the plugin
-2. Activate the plugin in WordPress
-3. Register your collections in your theme or plugin
-
-## Part of the ARC Framework
-
-ARC Gateway works seamlessly with:
-- **ARC Forge** - Model definitions
-- **ARC Blueprint** - Field management
-- **ARC Sentinel** - Authentication & authorization
-
-Together, they provide a complete rapid development framework for WordPress.
+= 1.0.0 =
+* Initial release

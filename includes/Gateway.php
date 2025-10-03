@@ -67,13 +67,14 @@ class Gateway
 
     /**
      * Get a fresh query builder for the collection
-     * 
+     *
      * @param string $identifier Model class or alias
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public static function query($identifier)
     {
-        return self::get($identifier)->query();
+        $modelClass = self::get($identifier)->getModelClass();
+        return $modelClass::query();
     }
 
     /**

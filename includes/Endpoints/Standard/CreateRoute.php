@@ -34,7 +34,8 @@ class CreateRoute extends BaseEndpoint
 
         try {
             // Get the model from the collection and create a new record
-            $model = $this->collection->create($data);
+            $modelClass = $this->collection->getModelClass();
+            $model = $modelClass::create($data);
 
             // Convert model to array for response
             $responseData = is_object($model) && method_exists($model, 'toArray')
@@ -44,10 +45,6 @@ class CreateRoute extends BaseEndpoint
             return $this->sendSuccessResponse($responseData, 201);
 
         } catch (\Exception $e) {
-            // Log the error for debugging
-            error_log("ARC Gateway CreateRoute Error: " . $e->getMessage());
-            error_log("ARC Gateway CreateRoute Data: " . print_r($data, true));
-
             return $this->sendErrorResponse(
                 'Failed to create ' . $this->collectionName . ': ' . $e->getMessage(),
                 'create_failed',

@@ -41,7 +41,8 @@ class UpdateRoute extends BaseEndpoint
         unset($data['id'], $data['route'], $data['rest_route']);
 
         try {
-            $model = $this->collection->find($id);
+            $modelClass = $this->collection->getModelClass();
+            $model = $modelClass::find($id);
 
             if (!$model) {
                 return $this->sendErrorResponse(
@@ -51,7 +52,8 @@ class UpdateRoute extends BaseEndpoint
                 );
             }
 
-            $updatedModel = $this->collection->update($id, $data);
+            $model->update($data);
+            $updatedModel = $model->fresh();
 
             if (!$updatedModel) {
                 return $this->sendErrorResponse(
@@ -69,8 +71,6 @@ class UpdateRoute extends BaseEndpoint
             return $this->sendSuccessResponse($responseData);
 
         } catch (\Exception $e) {
-            error_log("ARC Gateway UpdateRoute Error: " . $e->getMessage());
-
             return $this->sendErrorResponse(
                 'Failed to update ' . $this->collectionName . ': ' . $e->getMessage(),
                 'update_failed',
