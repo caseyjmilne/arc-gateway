@@ -69,7 +69,8 @@ class GetManyRoute extends BaseEndpoint
             }
 
             // Start with base query builder
-            $query = $this->collection->query();
+            $modelClass = $this->collection->getModelClass();
+            $query = $modelClass::query();
 
             // Apply filters from request params
             $filters = $request->get_params();
