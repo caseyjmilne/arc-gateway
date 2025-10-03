@@ -204,7 +204,7 @@ abstract class BaseEndpoint
                 break;
             case 'create':
                 $mockData['result'] = array_merge([
-                    'id' => rand(100, 999),
+                    'id' => wp_rand(100, 999),
                     'created_at' => current_time('mysql'),
                     'updated_at' => current_time('mysql')
                 ], $data ?: []);

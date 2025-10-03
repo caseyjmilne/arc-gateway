@@ -104,14 +104,14 @@ abstract class Collection
 
         if (!class_exists($this->model)) {
             throw new \InvalidArgumentException(
-                "Model class {$this->model} does not exist"
+                sprintf('Model class %s does not exist', esc_html($this->model))
             );
         }
 
         $reflection = new \ReflectionClass($this->model);
         if (!$reflection->isSubclassOf('Illuminate\Database\Eloquent\Model')) {
             throw new \InvalidArgumentException(
-                "{$this->model} must extend Illuminate\Database\Eloquent\Model"
+                sprintf('%s must extend Illuminate\Database\Eloquent\Model', esc_html($this->model))
             );
         }
     }

@@ -28,7 +28,9 @@ class CollectionRegistry
         // Register alias if provided, otherwise auto-generate from model name
         if ($alias) {
             if (isset($this->aliases[$alias])) {
-                throw new \InvalidArgumentException("Alias '{$alias}' is already registered for {$this->aliases[$alias]}");
+                throw new \InvalidArgumentException(
+                    sprintf("Alias '%s' is already registered for %s", esc_html($alias), esc_html($this->aliases[$alias]))
+                );
             }
             $this->aliases[$alias] = $modelClass;
         } else {
@@ -71,7 +73,9 @@ class CollectionRegistry
         }
 
         if (!isset($this->collections[$identifier])) {
-            throw new \InvalidArgumentException("Collection for '{$identifier}' is not registered");
+            throw new \InvalidArgumentException(
+                sprintf("Collection for '%s' is not registered", esc_html($identifier))
+            );
         }
 
         return $this->collections[$identifier];
