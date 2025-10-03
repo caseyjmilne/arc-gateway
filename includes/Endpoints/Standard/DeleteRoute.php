@@ -38,7 +38,8 @@ class DeleteRoute extends BaseEndpoint
 
         try {
             // Find the model
-            $model = $this->collection->getModel()::find($id);
+            $modelClass = $this->collection->getModelClass();
+            $model = $modelClass::find($id);
 
             if (!$model) {
                 return $this->sendErrorResponse(

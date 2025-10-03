@@ -37,7 +37,8 @@ class GetOneRoute extends BaseEndpoint
         }
 
         try {
-            $model = $this->collection->find($id);
+            $modelClass = $this->collection->getModelClass();
+            $model = $modelClass::find($id);
 
             if (!$model) {
                 return $this->sendErrorResponse(

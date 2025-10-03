@@ -34,7 +34,8 @@ class CreateRoute extends BaseEndpoint
 
         try {
             // Get the model from the collection and create a new record
-            $model = $this->collection->create($data);
+            $modelClass = $this->collection->getModelClass();
+            $model = $modelClass::create($data);
 
             // Convert model to array for response
             $responseData = is_object($model) && method_exists($model, 'toArray')
