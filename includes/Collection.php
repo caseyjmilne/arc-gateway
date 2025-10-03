@@ -2,293 +2,157 @@
 
 namespace ARC\Gateway;
 
-class Collection
+/**
+ * Abstract Collection class that configures API routes for Eloquent models
+ * 
+ * Usage:
+ * class TicketCollection extends \ARC\Gateway\Collection {
+ *     protected $model = \TicketSystem\TicketModel::class;
+ * }
+ * 
+ * Then register: TicketCollection::register();
+ */
+abstract class Collection
 {
-    protected $modelClass;
-    protected $config;
+    /**
+     * @var string Eloquent model class name (must be set by child class)
+     */
     protected $model;
 
-    public function __construct($modelClass, $config = [])
+    /**
+     * @var array API route configuration
+     */
+    protected $routes = [
+        'enabled' => true,
+        'prefix' => null,           // Auto-generated from model if null
+        'methods' => [
+            'get_many' => true,      // GET /tickets
+            'get_one' => true,       // GET /tickets/{id}
+            'create' => true,        // POST /tickets
+            'update' => true,        // PUT/PATCH /tickets/{id}
+            'delete' => true,        // DELETE /tickets/{id}
+        ],
+        'middleware' => [],
+        'permissions' => [],         // WP capabilities required
+    ];
+
+    /**
+     * @var array Model configuration
+     */
+    protected $config = [
+        'searchable' => [],          // Columns to search
+        'filterable' => [],          // Columns that can be filtered
+        'sortable' => [],            // Columns that can be sorted
+        'relations' => [],           // Relations to eager load
+        'hidden' => [],              // Fields to hide in API responses
+        'appends' => [],             // Accessors to append in API responses
+        'per_page' => 15,            // Default pagination
+        'max_per_page' => 100,       // Maximum items per page
+    ];
+
+    /**
+     * @var \Illuminate\Database\Eloquent\Model Model instance
+     */
+    private $modelInstance;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
     {
-        $this->modelClass = $modelClass;
-        $this->config = array_merge($this->getDefaultConfig(), $config);
-        $this->validateModelClass();
+        $this->validateModel();
+        
+        // Auto-generate route prefix if not set
+        if ($this->routes['prefix'] === null) {
+            $this->routes['prefix'] = $this->generateRoutePrefix();
+        }
     }
 
     /**
-     * Register a new collection
+     * Register this collection with the CollectionRegistry
      * 
-     * @param string $modelClass Eloquent model class name
-     * @param array $config Collection configuration
      * @param string|null $alias Optional alias for the collection
-     * @return Collection
+     * @return static
      */
-    public static function register($modelClass, $config = [], $alias = null)
+    public static function register($alias = null)
     {
-        return Plugin::getInstance()->getRegistry()->register($modelClass, $config, $alias);
+        $instance = new static();
+        return Plugin::getInstance()->getRegistry()->register($instance, $alias);
     }
 
     /**
-     * Get a registered collection
-     * 
-     * @param string $identifier Model class name or alias
-     * @return Collection
+     * Validate that model property is set and valid
      */
-    public static function get($identifier)
-    {
-        return Plugin::getInstance()->getRegistry()->get($identifier);
-    }
-
-    /**
-     * Check if a collection is registered
-     * 
-     * @param string $identifier Model class name or alias
-     * @return bool
-     */
-    public static function has($identifier)
-    {
-        return Plugin::getInstance()->getRegistry()->has($identifier);
-    }
-
-    protected function getDefaultConfig()
-    {
-        return [
-            'cache_enabled' => true,
-            'cache_duration' => 3600,
-            'soft_deletes' => false,
-            'timestamps' => true,
-            'relations' => [],
-            'scopes' => [],
-            'filters' => [],
-            'sortable' => [],
-            'searchable' => []
-        ];
-    }
-
-    protected function validateModelClass()
-    {
-        if (!class_exists($this->modelClass)) {
-            throw new \InvalidArgumentException("Model class {$this->modelClass} does not exist");
-        }
-
-        $reflection = new \ReflectionClass($this->modelClass);
-
-        if (!$reflection->isSubclassOf('Illuminate\Database\Eloquent\Model')) {
-            throw new \InvalidArgumentException("Class {$this->modelClass} must extend Illuminate\Database\Eloquent\Model");
-        }
-    }
-
-    /**
-     * Get the Eloquent model instance
-     * 
-     * @return \Illuminate\Database\Eloquent\Model
-     */
-    public function getModel()
+    protected function validateModel()
     {
         if (!$this->model) {
-            $this->model = new $this->modelClass();
+            throw new \InvalidArgumentException(
+                static::class . " must define a \$model property"
+            );
         }
+
+        if (!class_exists($this->model)) {
+            throw new \InvalidArgumentException(
+                "Model class {$this->model} does not exist"
+            );
+        }
+
+        $reflection = new \ReflectionClass($this->model);
+        if (!$reflection->isSubclassOf('Illuminate\Database\Eloquent\Model')) {
+            throw new \InvalidArgumentException(
+                "{$this->model} must extend Illuminate\Database\Eloquent\Model"
+            );
+        }
+    }
+
+    /**
+     * Generate route prefix from model name
+     */
+    protected function generateRoutePrefix()
+    {
+        $modelName = class_basename($this->model);
+        
+        // Convert "TicketModel" or "Ticket" to "tickets"
+        $prefix = str_replace('Model', '', $modelName);
+        $prefix = strtolower($prefix);
+        
+        // Simple pluralization (can be made more sophisticated)
+        if (!str_ends_with($prefix, 's')) {
+            $prefix .= 's';
+        }
+        
+        return $prefix;
+    }
+
+    /**
+     * Get fresh model instance
+     */
+    public function getModelInstance()
+    {
+        if (!$this->modelInstance) {
+            $this->modelInstance = new $this->model();
+        }
+        return clone $this->modelInstance;
+    }
+
+    /**
+     * Get model class name
+     */
+    public function getModelClass()
+    {
         return $this->model;
     }
 
     /**
-     * Get a fresh query builder
-     * 
-     * @return \Illuminate\Database\Eloquent\Builder
+     * Get route configuration
      */
-    public function query()
+    public function getRoutes()
     {
-        return $this->getModel()->newQuery();
-    }
-
-    /**
-     * Get all records
-     * 
-     * @param array $columns Columns to select
-     * @return \Illuminate\Database\Eloquent\Collection
-     */
-    public function all($columns = ['*'])
-    {
-        $query = $this->query();
-        $this->applyScopes($query);
-        return $query->get($columns);
-    }
-
-    /**
-     * Find a record by ID
-     * 
-     * @param mixed $id Record ID
-     * @param array $columns Columns to select
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
-    public function find($id, $columns = ['*'])
-    {
-        return $this->query()->find($id, $columns);
-    }
-
-    /**
-     * Add a where clause to the query
-     * 
-     * @param string $column Column name
-     * @param mixed $operator Operator or value
-     * @param mixed $value Value (if operator is provided)
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function where($column, $operator = null, $value = null)
-    {
-        $query = $this->query();
-        $this->applyScopes($query);
-        return $query->where($column, $operator, $value);
-    }
-
-    /**
-     * Create a new record
-     * 
-     * @param array $attributes Record attributes
-     * @return \Illuminate\Database\Eloquent\Model
-     */
-    public function create(array $attributes = [])
-    {
-        return $this->getModel()->create($attributes);
-    }
-
-    /**
-     * Update a record
-     * 
-     * @param mixed $id Record ID
-     * @param array $attributes Attributes to update
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
-    public function update($id, array $attributes = [])
-    {
-        $model = $this->find($id);
-        if ($model) {
-            $model->update($attributes);
-            return $model;
-        }
-        return null;
-    }
-
-    /**
-     * Delete a record
-     * 
-     * @param mixed $id Record ID
-     * @return bool
-     */
-    public function delete($id)
-    {
-        $model = $this->find($id);
-        if ($model) {
-            return $model->delete();
-        }
-        return false;
-    }
-
-    /**
-     * Search records
-     * 
-     * @param string $term Search term
-     * @param array|null $columns Columns to search (uses config if null)
-     * @return \Illuminate\Database\Eloquent\Collection
-     */
-    public function search($term, $columns = null)
-    {
-        if (!$columns) {
-            $columns = $this->config['searchable'];
-        }
-
-        if (empty($columns)) {
-            return collect();
-        }
-
-        $query = $this->query();
-        $query->where(function ($q) use ($term, $columns) {
-            foreach ($columns as $column) {
-                $q->orWhere($column, 'LIKE', "%{$term}%");
-            }
-        });
-
-        $this->applyScopes($query);
-        return $query->get();
-    }
-
-    /**
-     * Filter records by allowed filters
-     * 
-     * @param array $filters Filters to apply
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function filter(array $filters)
-    {
-        $query = $this->query();
-
-        foreach ($filters as $key => $value) {
-            if (in_array($key, $this->config['filters']) && $value !== null) {
-                $query->where($key, $value);
-            }
-        }
-
-        $this->applyScopes($query);
-        return $query;
-    }
-
-    /**
-     * Sort records by column
-     * 
-     * @param string $column Column to sort by
-     * @param string $direction Sort direction (asc|desc)
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function sort($column, $direction = 'asc')
-    {
-        if (in_array($column, $this->config['sortable'])) {
-            $query = $this->query();
-            $this->applyScopes($query);
-            return $query->orderBy($column, $direction);
-        }
-
-        return $this->query();
-    }
-
-    /**
-     * Apply configured scopes to query
-     * 
-     * @param \Illuminate\Database\Eloquent\Builder $query
-     * @return void
-     */
-    protected function applyScopes($query)
-    {
-        foreach ($this->config['scopes'] as $scope => $params) {
-            if (is_numeric($scope)) {
-                $query->$params();
-            } else {
-                $query->$scope(...(array) $params);
-            }
-        }
-    }
-
-    /**
-     * Load relationships
-     * 
-     * @param array|string|null $relations Relations to load (uses config if null)
-     * @return \Illuminate\Database\Eloquent\Builder
-     */
-    public function withRelations($relations = null)
-    {
-        if (!$relations) {
-            $relations = $this->config['relations'];
-        }
-
-        $query = $this->query();
-        $this->applyScopes($query);
-        return $query->with($relations);
+        return $this->routes;
     }
 
     /**
      * Get configuration value(s)
-     * 
-     * @param string|null $key Specific config key or null for all
-     * @return mixed
      */
     public function getConfig($key = null)
     {
@@ -299,25 +163,35 @@ class Collection
     }
 
     /**
-     * Set configuration value
-     * 
-     * @param string $key Config key
-     * @param mixed $value Config value
-     * @return self
+     * Check if route method is enabled
      */
-    public function setConfig($key, $value)
+    public function isRouteEnabled($method)
     {
-        $this->config[$key] = $value;
-        return $this;
+        return $this->routes['enabled'] && 
+               ($this->routes['methods'][$method] ?? false);
     }
 
     /**
-     * Get the model class name
-     * 
-     * @return string
+     * Get route prefix
      */
-    public function getModelClass()
+    public function getRoutePrefix()
     {
-        return $this->modelClass;
+        return $this->routes['prefix'];
+    }
+
+    /**
+     * Override route configuration
+     */
+    protected function configureRoutes(array $config)
+    {
+        $this->routes = array_merge($this->routes, $config);
+    }
+
+    /**
+     * Override configuration
+     */
+    protected function configureApi(array $config)
+    {
+        $this->config = array_merge($this->config, $config);
     }
 }
