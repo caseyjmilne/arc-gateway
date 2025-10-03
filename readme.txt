@@ -1,14 +1,14 @@
 === ARC Gateway ===
-Contributors: (your username)
+Contributors: arcwp
 Tags: api, eloquent, laravel, rest-api, collections
 Requires at least: 5.0
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.4
 Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A WordPress plugin that provides a registry system for Laravel Eloquent model collections, enabling developers to register and manage collections with extended functionality through an intuitive API.
+A WordPress plugin that provides a registry system for Laravel Eloquent model collections, enabling auto-generation of REST API routes.
 
 == Description ==
 

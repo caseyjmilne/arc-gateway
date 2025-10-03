@@ -66,8 +66,6 @@ class DeleteRoute extends BaseEndpoint
             ]);
 
         } catch (\Exception $e) {
-            error_log("ARC Gateway DeleteRoute Error: " . $e->getMessage());
-            
             return $this->sendErrorResponse(
                 'Failed to delete ' . $this->collectionName . ': ' . $e->getMessage(),
                 'delete_failed',

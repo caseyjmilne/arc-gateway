@@ -119,8 +119,6 @@ class GetManyRoute extends BaseEndpoint
             return $this->sendSuccessResponse($response);
 
         } catch (\Exception $e) {
-            error_log("ARC Gateway GetManyRoute Error: " . $e->getMessage());
-
             return $this->sendErrorResponse(
                 'Failed to retrieve ' . $this->collectionName . ' items: ' . $e->getMessage(),
                 'retrieval_failed',

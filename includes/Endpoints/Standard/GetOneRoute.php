@@ -56,8 +56,6 @@ class GetOneRoute extends BaseEndpoint
             return $this->sendSuccessResponse($responseData);
 
         } catch (\Exception $e) {
-            error_log("ARC Gateway GetOneRoute Error: " . $e->getMessage());
-
             return $this->sendErrorResponse(
                 'Failed to retrieve ' . $this->collectionName . ': ' . $e->getMessage(),
                 'retrieval_failed',

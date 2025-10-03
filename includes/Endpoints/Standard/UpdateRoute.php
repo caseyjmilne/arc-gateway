@@ -71,8 +71,6 @@ class UpdateRoute extends BaseEndpoint
             return $this->sendSuccessResponse($responseData);
 
         } catch (\Exception $e) {
-            error_log("ARC Gateway UpdateRoute Error: " . $e->getMessage());
-
             return $this->sendErrorResponse(
                 'Failed to update ' . $this->collectionName . ': ' . $e->getMessage(),
                 'update_failed',

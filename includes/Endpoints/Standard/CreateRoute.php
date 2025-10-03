@@ -45,10 +45,6 @@ class CreateRoute extends BaseEndpoint
             return $this->sendSuccessResponse($responseData, 201);
 
         } catch (\Exception $e) {
-            // Log the error for debugging
-            error_log("ARC Gateway CreateRoute Error: " . $e->getMessage());
-            error_log("ARC Gateway CreateRoute Data: " . print_r($data, true));
-
             return $this->sendErrorResponse(
                 'Failed to create ' . $this->collectionName . ': ' . $e->getMessage(),
                 'create_failed',
