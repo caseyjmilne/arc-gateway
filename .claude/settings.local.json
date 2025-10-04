@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/HP/Local Sites/trackify/app/public/wp-content/plugins/arc-forge/deploy/**)"
+      "Read(//c/Users/HP/Local Sites/trackify/app/public/wp-content/plugins/arc-forge/deploy/**)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd WordPress Application Passwords (Basic Auth) support.\n\n- Add allow_basic_auth configuration option (enabled by default)\n- Implement Basic Authentication using WordPress Application Passwords\n- Support Authorization header and PHP_AUTH_USER/PHP_AUTH_PW\n- Basic Auth checked first, falls back to configured auth (cookie/JWT)\n- Respects same capability requirements as configured auth\n- Enables Postman and external API access without cookies\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(git tag:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nRemove updater for WordPress.org hosted version.\n\nWordPress.org provides its own update mechanism, so deploy directory and updater code are not needed for the hosted version.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
