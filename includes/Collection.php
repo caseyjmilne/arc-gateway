@@ -24,7 +24,10 @@ abstract class Collection
      */
     protected $routes = [
         'enabled' => true,
-        'prefix' => null,           // Auto-generated from model if null
+        'namespace' => 'gateway',    // First segment of REST route (set to '' to omit)
+        'version' => 'v1',           // Second segment of REST route (set to '' to omit)
+        'prefix' => null,            // Auto-generated from model if null
+        'allow_basic_auth' => true,  // Allow WordPress Application Passwords (Basic Auth) in addition to configured auth
         'methods' => [
             'get_many' => true,      // GET /tickets
             'get_one' => true,       // GET /tickets/{id}
@@ -188,6 +191,18 @@ abstract class Collection
     public function getRoutePrefix()
     {
         return $this->routes['prefix'];
+    }
+
+    /**
+     * Get full REST namespace (e.g., "gateway/v1" or "productify/v1" or just "productify")
+     */
+    public function getRestNamespace()
+    {
+        $namespace = $this->routes['namespace'] ?? 'gateway';
+        $version = $this->routes['version'] ?? 'v1';
+
+        $parts = array_filter([$namespace, $version]);
+        return implode('/', $parts);
     }
 
     /**

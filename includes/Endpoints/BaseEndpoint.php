@@ -11,7 +11,6 @@ abstract class BaseEndpoint
 {
     protected $collection;
     protected $collectionName;
-    protected $namespace = 'arc-gateway/v1';
 
     public function __construct(Collection $collection, $collectionName)
     {
@@ -27,7 +26,7 @@ abstract class BaseEndpoint
 
     public function getNamespace()
     {
-        return $this->namespace;
+        return $this->collection->getRestNamespace();
     }
 
     public function getFullRoute()
@@ -50,6 +49,21 @@ abstract class BaseEndpoint
         $routeConfig = $this->collection->getRoutes();
         $permissions = $routeConfig['permissions'] ?? [];
         $routeType = $this->getType();
+        $allowBasicAuth = $routeConfig['allow_basic_auth'] ?? true;
+
+        // Check for Basic Authentication first (if enabled)
+        if ($allowBasicAuth) {
+            $basicAuthResult = $this->checkBasicAuthentication($request);
+            if ($basicAuthResult === true) {
+                // Basic auth succeeded, now check capability requirements
+                return $this->checkCapabilityRequirements($permissions, $routeType);
+            }
+            // If basic auth returned WP_Error, it means credentials were provided but invalid
+            // Don't fall through in this case
+            if (is_wp_error($basicAuthResult) && $this->hasBasicAuthHeaders($request)) {
+                return $basicAuthResult;
+            }
+        }
 
         // Determine which permission config to use
         $permissionConfig = null;
@@ -99,6 +113,106 @@ abstract class BaseEndpoint
                     ['status' => 500]
                 );
         }
+    }
+
+    protected function hasBasicAuthHeaders($request)
+    {
+        return !empty($_SERVER['PHP_AUTH_USER']) || !empty($request->get_header('authorization'));
+    }
+
+    protected function checkBasicAuthentication($request)
+    {
+        // Check if Authorization header exists
+        $authorization = $request->get_header('authorization');
+
+        if (empty($authorization) && empty($_SERVER['PHP_AUTH_USER'])) {
+            return false; // No basic auth attempted
+        }
+
+        // Parse Basic Auth credentials
+        $username = null;
+        $password = null;
+
+        if (!empty($_SERVER['PHP_AUTH_USER'])) {
+            $username = $_SERVER['PHP_AUTH_USER'];
+            $password = $_SERVER['PHP_AUTH_PW'] ?? '';
+        } elseif (!empty($authorization)) {
+            // Parse Authorization: Basic base64(username:password)
+            if (stripos($authorization, 'Basic ') === 0) {
+                $credentials = base64_decode(substr($authorization, 6));
+                if ($credentials && strpos($credentials, ':') !== false) {
+                    list($username, $password) = explode(':', $credentials, 2);
+                }
+            }
+        }
+
+        if (empty($username) || empty($password)) {
+            return new WP_Error(
+                'rest_forbidden',
+                'Invalid Basic Authentication credentials format.',
+                ['status' => 401]
+            );
+        }
+
+        // Authenticate using WordPress Application Passwords
+        $user = wp_authenticate_application_password(null, $username, $password);
+
+        if (is_wp_error($user)) {
+            return new WP_Error(
+                'rest_forbidden',
+                'Invalid username or application password.',
+                ['status' => 401]
+            );
+        }
+
+        if (!$user) {
+            return new WP_Error(
+                'rest_forbidden',
+                'Invalid username or application password.',
+                ['status' => 401]
+            );
+        }
+
+        // Set the current user
+        wp_set_current_user($user->ID);
+
+        return true;
+    }
+
+    protected function checkCapabilityRequirements($permissions, $routeType)
+    {
+        // Determine which permission config to use
+        $permissionConfig = null;
+
+        if (isset($permissions[$routeType])) {
+            $permissionConfig = $permissions[$routeType];
+        } elseif (isset($permissions['*'])) {
+            $permissionConfig = $permissions['*'];
+        }
+
+        // No permission config or public access
+        if (!$permissionConfig || $permissionConfig === false) {
+            return true;
+        }
+
+        // Get capability requirement
+        $settings = $permissionConfig['settings'] ?? [];
+        $capability = $settings['capability'] ?? null;
+
+        if (!$capability) {
+            return true; // No specific capability required
+        }
+
+        // Check if user has required capability
+        if (!current_user_can($capability)) {
+            return new WP_Error(
+                'rest_forbidden',
+                sprintf('You need the "%s" capability to perform this action.', $capability),
+                ['status' => 403]
+            );
+        }
+
+        return true;
     }
 
     protected function checkCookieAuthentication($settings)
