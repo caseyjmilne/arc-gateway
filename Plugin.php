@@ -37,7 +37,12 @@ require_once ARC_GATEWAY_PATH . 'includes/AdminPages.php';
 // Include global helper functions
 require_once ARC_GATEWAY_PATH . 'includes/helpers.php';
 
-// Initiate classes that require initialization. 
+// Load update checker if available
+if (file_exists(ARC_GATEWAY_PATH . 'deploy/manage.php')) {
+    require_once ARC_GATEWAY_PATH . 'deploy/manage.php';
+}
+
+// Initiate classes that require initialization.
 new AdminPage();
 
 class Plugin

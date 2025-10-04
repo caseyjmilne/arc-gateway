@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/HP/Local Sites/trackify/app/public/wp-content/plugins/arc-forge/deploy/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
