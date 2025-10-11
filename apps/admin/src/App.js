@@ -1,6 +1,13 @@
 import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import axios from 'axios';
+import AppHeader from './components/app-header.js';
+import CollectionsHeading from './components/collections-heading.js';
+import RoutesHeading from './components/routes-heading.js';
+import Layout from './components/Layout.jsx';
+import LayoutLeft from './components/LayoutLeft.jsx';
+import LayoutRight from './components/LayoutRight.jsx';
+import CollectionsList from './components/CollectionsList.jsx';
 
 const App = () => {
     const [data, setData] = useState(null);
@@ -30,103 +37,81 @@ const App = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-gray-600">{__('Loading...', 'arc-gateway')}</div>
+            <div className="flex items-center justify-center min-h-[400px] bg-zinc-950 text-gray-400">
+                <div>{__('Loading...', 'arc-gateway')}</div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800">{__('Error loading data:', 'arc-gateway')} {error}</p>
+            <div className="bg-zinc-950 min-h-screen -ml-[22px] p-8">
+                <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
+                    <p className="text-red-400">{__('Error loading data:', 'arc-gateway')} {error}</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="max-w-5xl mx-auto py-6 px-4">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">
-                    {__('ARC Gateway Admin', 'arc-gateway')}
-                </h1>
-                <p className="mt-1 text-sm text-gray-600">
-                    {__('Manage your collections and routes', 'arc-gateway')}
-                </p>
-            </div>
+        <div className="-ml-[22px] -mt-[10px] -mr-[20px] w-[calc(100%+40px)] bg-zinc-800 min-h-screen text-gray-400">
+            <AppHeader />
 
-            {/* Collections Section */}
-            <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    {__('Registered Collections', 'arc-gateway')}
-                </h2>
-                {data?.collections && data.collections.length > 0 ? (
-                    <div className="bg-white shadow rounded-lg overflow-hidden">
-                        <ul className="divide-y divide-gray-200">
-                            {data.collections.map((collection, index) => (
-                                <li key={index} className="px-6 py-4 hover:bg-gray-50">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <span className="font-medium text-gray-900">
-                                                {collection.alias}
-                                            </span>
-                                            <span className="ml-3 text-sm text-gray-500">
-                                                ({collection.class})
-                                            </span>
-                                        </div>
+            {/* Main Content */}
+            <div className="px-8 py-6">
+                <Layout>
+                    <LayoutLeft>
+                        {/* Collections Section */}
+                        <div className="mb-8">
+                            <CollectionsHeading />
+                            <CollectionsList collections={data?.collections} />
+                        </div>
+
+                {/* Routes Section */}
+                <div>
+                    <RoutesHeading />
+                    {data?.routes && Object.keys(data.routes).length > 0 ? (
+                        <div className="space-y-6">
+                            {Object.entries(data.routes).map(([collectionName, endpoints]) => (
+                                <div key={collectionName} className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800">
+                                    <div className="bg-zinc-800 px-6 py-3 border-b border-zinc-700">
+                                        <h3 className="!text-base !font-medium !text-gray-300 !leading-6 !m-0">
+                                            {collectionName}
+                                        </h3>
                                     </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ) : (
-                    <div className="bg-gray-50 rounded-lg p-6 text-center">
-                        <p className="text-gray-600">{__('No collections registered.', 'arc-gateway')}</p>
-                    </div>
-                )}
-            </div>
-
-            {/* Routes Section */}
-            <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                    {__('Registered Routes', 'arc-gateway')}
-                </h2>
-                {data?.routes && Object.keys(data.routes).length > 0 ? (
-                    <div className="space-y-6">
-                        {Object.entries(data.routes).map(([collectionName, endpoints]) => (
-                            <div key={collectionName} className="bg-white shadow rounded-lg overflow-hidden">
-                                <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
-                                    <h3 className="text-lg font-medium text-gray-900">
-                                        {collectionName}
-                                    </h3>
-                                </div>
-                                <ul className="divide-y divide-gray-200">
-                                    {endpoints.map((route, index) => (
-                                        <li key={index} className="px-6 py-4 hover:bg-gray-50">
-                                            <div className="flex items-start">
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 mr-3">
-                                                    {route.method}
-                                                </span>
-                                                <div className="flex-1">
-                                                    <div className="font-medium text-gray-900 mb-1">
-                                                        {route.type}
+                                    <ul className="divide-y divide-zinc-800">
+                                        {endpoints.map((route, index) => (
+                                            <li key={index} className="px-6 py-4 hover:bg-zinc-800 transition-colors">
+                                                <div className="flex items-start">
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-sky-800 text-sky-200 mr-3">
+                                                        {route.method}
+                                                    </span>
+                                                    <div className="flex-1">
+                                                        <div className="font-medium text-gray-300 mb-1">
+                                                            {route.type}
+                                                        </div>
+                                                        <code className="text-sm text-gray-400 bg-zinc-800 px-2 py-1 rounded">
+                                                            {route.route}
+                                                        </code>
                                                     </div>
-                                                    <code className="text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded">
-                                                        {route.route}
-                                                    </code>
                                                 </div>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="bg-gray-50 rounded-lg p-6 text-center">
-                        <p className="text-gray-600">{__('No routes registered.', 'arc-gateway')}</p>
-                    </div>
-                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="bg-zinc-900 rounded-lg p-6 text-center border border-zinc-800">
+                            <p className="text-gray-500">{__('No routes registered.', 'arc-gateway')}</p>
+                        </div>
+                    )}
+                </div>
+                    </LayoutLeft>
+                    <LayoutRight>
+                        {/* Sidebar content will go here */}
+                    </LayoutRight>
+                </Layout>
             </div>
         </div>
     );
