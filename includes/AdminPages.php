@@ -9,6 +9,7 @@ class AdminPage
     public function __construct()
     {
         add_action('admin_menu', [$this, 'register_admin_page']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_assets']);
     }
 
     public function register_admin_page()
@@ -24,46 +25,51 @@ class AdminPage
         );
     }
 
+    public function enqueue_admin_assets($hook)
+    {
+        // Only load on our admin page
+        if ($hook !== 'toplevel_page_arc-gateway') {
+            return;
+        }
+
+        $asset_file_path = ARC_GATEWAY_PATH . 'apps/admin/build/index.asset.php';
+
+        if (!file_exists($asset_file_path)) {
+            return;
+        }
+
+        $asset_file = include $asset_file_path;
+
+        wp_enqueue_script(
+            'arc-gateway-admin',
+            ARC_GATEWAY_URL . 'apps/admin/build/index.js',
+            $asset_file['dependencies'],
+            $asset_file['version'],
+            true
+        );
+
+        wp_enqueue_style(
+            'arc-gateway-admin',
+            ARC_GATEWAY_URL . 'apps/admin/build/style-index.css',
+            [],
+            $asset_file['version']
+        );
+
+        // Pass nonce and other data to JavaScript
+        wp_localize_script(
+            'arc-gateway-admin',
+            'arcGatewayAdmin',
+            [
+                'nonce' => wp_create_nonce('wp_rest'),
+                'apiUrl' => rest_url('arc-gateway/v1/')
+            ]
+        );
+    }
+
     public function render_admin_page()
     {
         echo '<div class="wrap">';
-        echo '<h1>ARC Gateway Admin</h1>';
-
-        // --- Collections ---
-        $registry = Plugin::getInstance()->getRegistry();
-        $collections = $registry->getAll(); // ✅ correct method
-        echo '<h2>Registered Collections</h2>';
-        if (!empty($collections)) {
-            echo '<ul>';
-            foreach ($collections as $alias => $collection) {
-                echo '<li><strong>' . esc_html($alias) . '</strong> (' . esc_html(get_class($collection)) . ')</li>';
-            }
-            echo '</ul>';
-        } else {
-            echo '<p>No collections registered.</p>';
-        }
-
-        // --- Routes ---
-        $routes = Plugin::getInstance()->getStandardRoutes()->getRouteInfo();
-        echo '<h2>Registered Routes</h2>';
-        if (!empty($routes)) {
-            foreach ($routes as $collectionName => $endpoints) {
-                echo '<h3>' . esc_html($collectionName) . '</h3>';
-                echo '<ul>';
-                foreach ($endpoints as $route) {
-                    printf(
-                        '<li><strong>%s</strong> (%s) — %s</li>',
-                        esc_html($route['type']),
-                        esc_html($route['method']),
-                        esc_html($route['route'])
-                    );
-                }
-                echo '</ul>';
-            }
-        } else {
-            echo '<p>No routes registered.</p>';
-        }
-
+        echo '<div id="arc-gateway-admin-root"></div>';
         echo '</div>';
     }
 }

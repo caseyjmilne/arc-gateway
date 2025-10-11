@@ -32,6 +32,7 @@ require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/GetOneRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/GetManyRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/UpdateRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/DeleteRoute.php';
+require_once ARC_GATEWAY_PATH . 'includes/Endpoints/AdminDataRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/AdminPages.php';
 
 // Include global helper functions
@@ -44,6 +45,7 @@ if (file_exists(ARC_GATEWAY_PATH . 'deploy/manage.php')) {
 
 // Initiate classes that require initialization.
 new AdminPage();
+new Endpoints\AdminDataRoute();
 
 class Plugin
 {
