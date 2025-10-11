@@ -32,7 +32,7 @@ abstract class Collection
             'get_many' => true,      // GET /tickets
             'get_one' => true,       // GET /tickets/{id}
             'create' => true,        // POST /tickets
-            'update' => true,        // PUT/PATCH /tickets/{id}
+            'update' => true,        // PUT /tickets/{id}
             'delete' => true,        // DELETE /tickets/{id}
         ],
         'middleware' => [],
