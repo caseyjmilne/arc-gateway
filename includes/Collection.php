@@ -26,7 +26,7 @@ abstract class Collection
         'enabled' => true,
         'namespace' => 'gateway',    // First segment of REST route (set to '' to omit)
         'version' => 'v1',           // Second segment of REST route (set to '' to omit)
-        'prefix' => null,            // Auto-generated from model if null
+        'route' => null,             // Auto-generated from model if null
         'allow_basic_auth' => true,  // Allow WordPress Application Passwords (Basic Auth) in addition to configured auth
         'methods' => [
             'get_many' => true,      // GET /tickets
@@ -75,10 +75,10 @@ abstract class Collection
     public function __construct()
     {
         $this->validateModel();
-        
-        // Auto-generate route prefix if not set
-        if ($this->routes['prefix'] === null) {
-            $this->routes['prefix'] = $this->generateRoutePrefix();
+
+        // Auto-generate route if not set
+        if ($this->routes['route'] === null) {
+            $this->routes['route'] = $this->generateRoute();
         }
     }
 
@@ -120,22 +120,31 @@ abstract class Collection
     }
 
     /**
-     * Generate route prefix from model name
+     * Generate route from model name
+     */
+    protected function generateRoute()
+    {
+        $modelName = class_basename($this->model);
+
+        // Convert "TicketModel" or "Ticket" to "tickets"
+        $route = str_replace('Model', '', $modelName);
+        $route = strtolower($route);
+
+        // Simple pluralization (can be made more sophisticated)
+        if (!str_ends_with($route, 's')) {
+            $route .= 's';
+        }
+
+        return $route;
+    }
+
+    /**
+     * Generate route prefix from model name (deprecated - use generateRoute() instead)
+     * @deprecated Use generateRoute() instead
      */
     protected function generateRoutePrefix()
     {
-        $modelName = class_basename($this->model);
-        
-        // Convert "TicketModel" or "Ticket" to "tickets"
-        $prefix = str_replace('Model', '', $modelName);
-        $prefix = strtolower($prefix);
-        
-        // Simple pluralization (can be made more sophisticated)
-        if (!str_ends_with($prefix, 's')) {
-            $prefix .= 's';
-        }
-        
-        return $prefix;
+        return $this->generateRoute();
     }
 
     /**
@@ -186,11 +195,20 @@ abstract class Collection
     }
 
     /**
-     * Get route prefix
+     * Get route
+     */
+    public function getRoute()
+    {
+        return $this->routes['route'];
+    }
+
+    /**
+     * Get route prefix (deprecated - use getRoute() instead)
+     * @deprecated Use getRoute() instead
      */
     public function getRoutePrefix()
     {
-        return $this->routes['prefix'];
+        return $this->getRoute();
     }
 
     /**

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ARC Gateway
  * Description: A plugin to register collections based on Eloquent models which auto-generate API routes like Strapi.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: ARC Software
  * Namespace: ARC\Gateway
  * License: GPL-2.0+
@@ -32,6 +32,7 @@ require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/GetOneRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/GetManyRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/UpdateRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/Endpoints/Standard/DeleteRoute.php';
+require_once ARC_GATEWAY_PATH . 'includes/Endpoints/AdminDataRoute.php';
 require_once ARC_GATEWAY_PATH . 'includes/AdminPages.php';
 
 // Include global helper functions
@@ -44,6 +45,7 @@ if (file_exists(ARC_GATEWAY_PATH . 'deploy/manage.php')) {
 
 // Initiate classes that require initialization.
 new AdminPage();
+new Endpoints\AdminDataRoute();
 
 class Plugin
 {

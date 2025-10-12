@@ -4,7 +4,7 @@ Tags: api, eloquent, laravel, rest-api, collections
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,9 @@ DELETE /wp-json/arc/v1/products/{id}
 Use the `Collection::register()` method or the `arc_register_collection()` helper function. See the Usage section for examples.
 
 == Changelog ==
+
+= 1.0.1 =
+* Adds admin read-only viewing of registered API routes.
 
 = 1.0.0 =
 * Initial release
