@@ -4,6 +4,9 @@
 sitemap.xml
 sitemap.xml.gz
 
+# React
+src
+
 # IDE & Editors
 .vscode/
 .idea/
@@ -25,12 +28,11 @@ ehthumbs.db
 Desktop.ini
 
 # Dependencies
-/vendor/
-/node_modules/
+vendor
+node_modules
 
-# Build & Distribution
+# Distribution
 /dist/
-/build/
 *.zip
 *.tar.gz
 
@@ -58,3 +60,6 @@ yarn-error.log
 *.bak
 *.swp
 *~
+
+# AI
+.claude/
