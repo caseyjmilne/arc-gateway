@@ -1,5 +1,5 @@
 import { __ } from '@wordpress/i18n';
-import CollectionItem from './CollectionItem.jsx';
+import CollectionItem from './collection-item.jsx';
 
 export const CollectionsList = ({ collections }) => {
   if (!collections || collections.length === 0) {
