@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ARC Gateway
  * Description: A plugin to register collections based on Eloquent models which auto-generate API routes like Strapi.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: ARC Software
  * Namespace: ARC\Gateway
  * License: GPL-2.0+
