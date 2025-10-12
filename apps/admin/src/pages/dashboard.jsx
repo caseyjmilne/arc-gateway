@@ -1,9 +1,8 @@
-import RoutesHeading from '../components/routes-heading.js';
 import Layout from '../components/layout.jsx';
 import LayoutLeft from '../components/layout-left.jsx';
 import LayoutRight from '../components/layout-right.jsx';
-import RoutesList from '../components/routes-list.jsx';
 import StatCard from '../components/stat-card.jsx';
+import GettingStarted from '../components/getting-started.jsx';
 
 const Dashboard = ({ data }) => {
     const collectionsCount = data?.collections?.length || 0;
@@ -16,8 +15,7 @@ const Dashboard = ({ data }) => {
     return (
         <Layout>
             <LayoutLeft>
-                <RoutesHeading />
-                <RoutesList routes={data?.routes} />
+                <GettingStarted/>
             </LayoutLeft>
             <LayoutRight>
                 <div className="space-y-6">
