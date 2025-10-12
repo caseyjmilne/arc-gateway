@@ -1,6 +1,6 @@
 export const CollectionItem = ({ collection }) => {
   return (
-    <li className="px-6 py-4">
+    <li className="px-6 py-4 !mb-0">
       <div className="flex items-center justify-between">
         <div>
           <span className="font-medium text-gray-300">

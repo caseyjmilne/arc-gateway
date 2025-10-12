@@ -8,7 +8,7 @@ const RoutesCollection = ({ collectionName, endpoints }) => {
                     {collectionName}
                 </h3>
             </div>
-            <ul className="divide-y divide-zinc-800">
+            <ul>
                 {endpoints.map((route, index) => (
                     <RouteItem key={index} route={route} />
                 ))}
