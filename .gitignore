@@ -4,9 +4,6 @@
 sitemap.xml
 sitemap.xml.gz
 
-# React
-src
-
 # IDE & Editors
 .vscode/
 .idea/
