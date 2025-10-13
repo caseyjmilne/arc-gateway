@@ -21,7 +21,7 @@ class AdminPage
             'arc-gateway',                 // Menu slug
             [$this, 'render_admin_page'],  // Callback
             'dashicons-admin-generic',     // Icon
-            90                             // Position
+            81                             // Position
         );
     }
 
