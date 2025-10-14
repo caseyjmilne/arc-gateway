@@ -98,8 +98,8 @@ class StandardRoutes
         // Extract class name from full namespace
         $className = basename(str_replace('\\', '/', $modelClass));
 
-        // Convert PascalCase to snake_case and make lowercase
-        $normalized = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $className));
+        // Convert PascalCase to kebab-case and make lowercase (e.g., "DocSet" -> "doc-set")
+        $normalized = strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $className));
 
         // Pluralize by adding 's' (basic pluralization)
         if (!str_ends_with($normalized, 's')) {

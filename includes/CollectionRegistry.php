@@ -231,7 +231,7 @@ class CollectionRegistry
                 'model' => $modelClass,
                 'collection' => get_class($collection),
                 'alias' => $this->getAlias($modelClass),
-                'route_prefix' => $collection->getRoutePrefix(),
+                'route' => $collection->getRoute(),
                 'column_count' => $collection->getColumnCount(),
                 'enabled_routes' => array_keys(array_filter($collection->getRoutes()['methods'])),
             ];

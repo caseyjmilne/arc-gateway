@@ -128,7 +128,9 @@ abstract class Collection
 
         // Convert "TicketModel" or "Ticket" to "tickets"
         $route = str_replace('Model', '', $modelName);
-        $route = strtolower($route);
+
+        // Convert PascalCase to kebab-case (e.g., "DocSet" -> "doc-set", "MyPluginModel" -> "my-plugin")
+        $route = strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $route));
 
         // Simple pluralization (can be made more sophisticated)
         if (!str_ends_with($route, 's')) {
