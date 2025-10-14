@@ -77,7 +77,7 @@ abstract class Collection
         $this->validateModel();
 
         // Auto-generate route if not set
-        if ($this->routes['route'] === null) {
+        if (!isset($this->routes['route']) || $this->routes['route'] === null) {
             $this->routes['route'] = $this->generateRoute();
         }
     }
